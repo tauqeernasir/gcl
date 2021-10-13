@@ -12,6 +12,7 @@ var infoPrefixPlain = []byte("[INFO] ")
 var warnPrefixPlain = []byte("[WARN] ")
 var errorPrefixPlain = []byte("[WARN] ")
 var fatalPrefixPlain = []byte("[FATA] ")
+var successPrefixPlain = []byte("[SUCC] ")
 
 type Prefix struct {
 	Plain   []byte
@@ -21,7 +22,7 @@ type Prefix struct {
 var (
 	InfoPrefix = Prefix{
 		Plain:   infoPrefixPlain,
-		Colored: Blue(infoPrefixPlain),
+		Colored: Cyan(infoPrefixPlain),
 	}
 
 	WarnPrefix = Prefix{
@@ -37,6 +38,11 @@ var (
 	FatalPrefix = Prefix{
 		Plain:   fatalPrefixPlain,
 		Colored: Red(fatalPrefixPlain),
+	}
+
+	SuccessPrefix = Prefix{
+		Plain:   successPrefixPlain,
+		Colored: Green(successPrefixPlain),
 	}
 )
 
@@ -80,6 +86,10 @@ func (l *Logger) Fatal(text string) {
 func (l *Logger) Fatalf(text string, args ...interface{}) {
 	l.Log(FatalPrefix, fmt.Sprintf(text, args...))
 	os.Exit(1)
+}
+
+func (l *Logger) Success(text string) {
+	l.Log(SuccessPrefix, text)
 }
 
 func (l *Logger) WithTimestamp() *Logger {
@@ -126,7 +136,7 @@ func (l *Logger) Log(prefix Prefix, text string) {
 
 	if l.timestamp {
 		if l.color {
-			l.buf.Append(ColorPurple)
+			l.buf.Append(ColorGreen)
 		}
 		year, month, day := now.Date()
 		l.buf.Append([]byte(fmt.Sprint(year)))
@@ -142,11 +152,12 @@ func (l *Logger) Log(prefix Prefix, text string) {
 		l.buf.Append([]byte(fmt.Sprint(minutes)))
 		l.buf.AppendByte(':')
 		l.buf.Append([]byte(fmt.Sprint(seconds)))
-		l.buf.AppendByte(' ')
 
 		if l.color {
 			l.buf.Append(ColorReset)
 		}
+
+		l.buf.AppendByte(' ')
 	}
 
 	// print data received
