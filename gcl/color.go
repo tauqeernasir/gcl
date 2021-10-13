@@ -1,13 +1,13 @@
 package gcl
 
 var (
-	colorReset  = []byte("\033[0m")
+	ColorReset  = []byte("\033[0m")
 	colorBlack  = []byte("\033[30m")
 	colorRed    = []byte("\033[31m")
 	colorGreen  = []byte("\033[32m")
 	colorYellow = []byte("\033[33m")
 	colorBlue   = []byte("\033[34m")
-	colorPurple = []byte("\033[35m")
+	ColorPurple = []byte("\033[35m")
 	colorCyan   = []byte("\033[36m")
 	colorGray   = []byte("\033[37m")
 	colorWhite  = []byte("\033[97m")
@@ -32,9 +32,13 @@ var (
 
 func colorize(data []byte, color []byte) []byte {
 	var result []byte
-	return append(append(append(result, color...), data...), colorReset...)
+	return append(append(append(result, color...), data...), ColorReset...)
 }
 
 func Blue(data []byte) []byte {
 	return colorize(data, colorBlue)
+}
+
+func Yellow(data []byte) []byte {
+	return colorize(data, colorYellow)
 }
