@@ -44,3 +44,38 @@ You can turn on/off some features of the logger by calling following methods on 
 - WithFileInfo() or WithoutFileInfo()
 
 All methods return reference to the `Logger`, so they can easily be chained. Like `Logger.WithColor().WithoutTimestamp().WithoutFileInfo()`
+
+#### Logging to file
+
+```go
+
+package main
+
+import (
+	"os"
+
+	"github.com/tauqeernasir/gcl/gcl"
+)
+
+var Logger *gcl.Logger
+
+func init() {
+	// create a file
+	f, err := os.Create("log.txt")
+	if err != nil {
+		panic("couldn't create log.txt file")
+	}
+	
+	// provide file to logger
+	Logger = gcl.NewLogger(f).WithoutColor()
+}
+
+func main() {
+	Logger.Info("I am an information message.")
+	Logger.Error("I am an error message.")
+	Logger.Success("I am a success message.")
+	Logger.Warn("I am a warning message.")
+	Logger.Fatal("I am a fatal message.")
+}
+
+```
