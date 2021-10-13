@@ -108,7 +108,9 @@ func (l *Logger) Log(prefix Prefix, text string) {
 	}
 
 	if l.timestamp {
-		l.buf.Append(ColorPurple)
+		if l.color {
+			l.buf.Append(ColorPurple)
+		}
 		year, month, day := now.Date()
 		l.buf.Append([]byte(fmt.Sprint(year)))
 		l.buf.AppendByte('/')
@@ -125,7 +127,9 @@ func (l *Logger) Log(prefix Prefix, text string) {
 		l.buf.Append([]byte(fmt.Sprint(seconds)))
 		l.buf.AppendByte(' ')
 
-		l.buf.Append(ColorReset)
+		if l.color {
+			l.buf.Append(ColorReset)
+		}
 	}
 
 	// print data received

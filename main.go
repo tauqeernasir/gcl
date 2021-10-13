@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	gcl := gcl.New(os.Stdout).WithTimestamp()
+	gcl := gcl.New(os.Stdout).WithTimestamp().WithColor()
 	gcl.Info("I am an information.")
 	gcl.Infof("I am an information (%v=%v)", "key", "value")
 	gcl.Warn("I am a warning")
