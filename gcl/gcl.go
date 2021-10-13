@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-var infoPrefixPlain = []byte("INFO ")
-var warnPrefixPlain = []byte("WARN ")
-var errorPrefixPlain = []byte("WARN ")
-var fatalPrefixPlain = []byte("FATA ")
-var successPrefixPlain = []byte("SUCC ")
+var infoPrefixPlain = []byte("INFO \u2591 ")
+var warnPrefixPlain = []byte("WARN \u2591 ")
+var errorPrefixPlain = []byte("WARN \u2591 ")
+var fatalPrefixPlain = []byte("FATA \u2591 ")
+var successPrefixPlain = []byte("SUCC \u2591 ")
 
 type Prefix struct {
 	Plain   []byte
@@ -47,11 +47,12 @@ var (
 )
 
 type Logger struct {
-	mu        sync.RWMutex
-	color     bool
-	timestamp bool
-	buf       Buffer
-	out       io.Writer
+	mu           sync.RWMutex
+	color        bool
+	timestamp    bool
+	buf          Buffer
+	out          io.Writer
+	showFileInfo bool
 }
 
 func (l *Logger) Info(text string) {
@@ -120,6 +121,20 @@ func (l *Logger) WithoutColor() *Logger {
 	return l
 }
 
+func (l *Logger) WithFileInfo() *Logger {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.showFileInfo = true
+	return l
+}
+
+func (l *Logger) WithoutFileInfo() *Logger {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.showFileInfo = false
+	return l
+}
+
 func (l *Logger) Log(prefix Prefix, text string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -128,15 +143,9 @@ func (l *Logger) Log(prefix Prefix, text string) {
 
 	l.buf.Reset()
 
-	if l.color {
-		l.buf.Append(prefix.Colored)
-	} else {
-		l.buf.Append(prefix.Plain)
-	}
-
 	if l.timestamp {
 		if l.color {
-			l.buf.Append(ColorGreen)
+			l.buf.Append(ColorGray)
 		}
 
 		formattedTimeBytes := getCurrentTime(now)
@@ -147,6 +156,29 @@ func (l *Logger) Log(prefix Prefix, text string) {
 			l.buf.Append(ColorReset)
 		}
 
+		l.buf.AppendByte(' ')
+	}
+
+	if l.color {
+		l.buf.Append(prefix.Colored)
+	} else {
+		l.buf.Append(prefix.Plain)
+	}
+
+	if l.showFileInfo {
+		l.buf.AppendByte('[')
+		if l.color {
+			l.buf.Append(ColorReset)
+			l.buf.Append(StyleUnderline)
+		}
+
+		file, line, fn := getFileInfo()
+		l.buf.Append([]byte(fmt.Sprintf("file<%v:%v>@%v", file, line, fn)))
+
+		if l.color {
+			l.buf.Append(ColorReset)
+		}
+		l.buf.AppendByte(']')
 		l.buf.AppendByte(' ')
 	}
 
