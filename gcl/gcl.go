@@ -10,7 +10,7 @@ import (
 
 var infoPrefixPlain = []byte("INFO \u2591 ")
 var warnPrefixPlain = []byte("WARN \u2591 ")
-var errorPrefixPlain = []byte("WARN \u2591 ")
+var errorPrefixPlain = []byte("ERRO \u2591 ")
 var fatalPrefixPlain = []byte("FATA \u2591 ")
 var successPrefixPlain = []byte("SUCC \u2591 ")
 
