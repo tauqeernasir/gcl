@@ -8,7 +8,7 @@ import (
 
 func main() {
 	gcl := gcl.New(os.Stdout).WithTimestamp()
-	gcl.Info("OK I am blue.")
-	gcl.WithoutColor()
-	gcl.Info("OK I am Red.")
+	gcl.Info("I am an information.")
+	gcl.Warn("I am a warning")
+	gcl.Error("I am an error.")
 }

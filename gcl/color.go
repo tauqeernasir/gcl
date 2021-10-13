@@ -42,3 +42,7 @@ func Blue(data []byte) []byte {
 func Yellow(data []byte) []byte {
 	return colorize(data, colorYellow)
 }
+
+func Red(data []byte) []byte {
+	return colorize(data, colorRed)
+}

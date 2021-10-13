@@ -8,6 +8,8 @@ import (
 )
 
 var infoPrefixPlain = []byte("[INFO] ")
+var warnPrefixPlain = []byte("[WARN] ")
+var errorPrefixPlain = []byte("[WARN] ")
 
 type Prefix struct {
 	Plain   []byte
@@ -18,6 +20,16 @@ var (
 	InfoPrefix = Prefix{
 		Plain:   infoPrefixPlain,
 		Colored: Blue(infoPrefixPlain),
+	}
+
+	WarnPrefix = Prefix{
+		Plain:   warnPrefixPlain,
+		Colored: Yellow(warnPrefixPlain),
+	}
+
+	ErrorPrefix = Prefix{
+		Plain:   errorPrefixPlain,
+		Colored: Red(errorPrefixPlain),
 	}
 )
 
@@ -30,8 +42,15 @@ type Logger struct {
 }
 
 func (l *Logger) Info(text string) {
-	// fmt.Printf("%v%v%v%v\n", InfoPrefix, colorBlue, text, ColorReset)
 	l.Log(InfoPrefix, text)
+}
+
+func (l *Logger) Warn(text string) {
+	l.Log(WarnPrefix, text)
+}
+
+func (l *Logger) Error(text string) {
+	l.Log(ErrorPrefix, text)
 }
 
 func (l *Logger) WithTimestamp() *Logger {
