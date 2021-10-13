@@ -45,12 +45,24 @@ func (l *Logger) Info(text string) {
 	l.Log(InfoPrefix, text)
 }
 
+func (l *Logger) Infof(text string, args ...interface{}) {
+	l.Log(InfoPrefix, fmt.Sprintf(text, args...))
+}
+
 func (l *Logger) Warn(text string) {
 	l.Log(WarnPrefix, text)
 }
 
+func (l *Logger) Warnf(text string, args ...interface{}) {
+	l.Log(WarnPrefix, fmt.Sprintf(text, args...))
+}
+
 func (l *Logger) Error(text string) {
 	l.Log(ErrorPrefix, text)
+}
+
+func (l *Logger) Errorf(text string, args ...interface{}) {
+	l.Log(ErrorPrefix, fmt.Sprintf(text, args...))
 }
 
 func (l *Logger) WithTimestamp() *Logger {
