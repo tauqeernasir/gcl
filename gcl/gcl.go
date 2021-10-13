@@ -1,6 +1,7 @@
 package gcl
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -53,6 +54,14 @@ type Logger struct {
 	buf          Buffer
 	out          io.Writer
 	showFileInfo bool
+	// fields to display with next out call
+	fields Fields
+}
+
+type Fields map[string]interface{}
+
+func (f *Fields) Reset() {
+	*f = nil
 }
 
 func (l *Logger) Info(text string) {
@@ -91,6 +100,11 @@ func (l *Logger) Fatalf(text string, args ...interface{}) {
 
 func (l *Logger) Success(text string) {
 	l.Log(SuccessPrefix, text)
+}
+
+func (l *Logger) WithFields(fields Fields) *Logger {
+	l.fields = fields
+	return l
 }
 
 func (l *Logger) WithTimestamp() *Logger {
@@ -184,6 +198,12 @@ func (l *Logger) Log(prefix Prefix, text string) {
 
 	// print data received
 	l.buf.Append([]byte(text))
+
+	if jsonBytes, err := json.Marshal(l.fields); err == nil && string(jsonBytes) != "null" {
+		l.buf.AppendByte(' ')
+		l.buf.Append([]byte(jsonBytes))
+		l.fields.Reset()
+	}
 
 	if len(text) == 0 || text[len(text)-1] != '\n' {
 		l.buf.Append([]byte("\n"))

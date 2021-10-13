@@ -9,7 +9,10 @@ import (
 func main() {
 	l := gcl.NewLogger(os.Stdout).WithTimestamp().WithoutColor()
 
-	l.Info("I am an information.")
+	l.WithFields(gcl.Fields{
+		"name":  "tauqeer",
+		"email": "tauqeer@g.com",
+	}).Info("I am an information.")
 	l.Infof("I am an information (%v=%v)", "key", "value")
 	l.Warn("I am a warning")
 	l.Warnf("I am an warning (%v=%v)", "key", "value")
@@ -20,7 +23,10 @@ func main() {
 	lc.Info("I am an information.")
 	lc.Infof("I am an information (%v=%v)", "key", "value")
 	lc.Warn("I am a warning")
-	lc.Warnf("I am an warning (%v=%v)", "key", "value")
+	lc.WithFields(gcl.Fields{
+		"name":  "tauqeer",
+		"email": "tauqeer@g.com",
+	}).Warnf("I am an warning (%v=%v)", "key", "value")
 	lc.Success("I am an error.")
 	lc.Errorf("I am an error (%v=%v)", "key", "value")
 }
