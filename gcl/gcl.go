@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-var infoPrefixPlain = []byte("[INFO] ")
-var warnPrefixPlain = []byte("[WARN] ")
-var errorPrefixPlain = []byte("[WARN] ")
-var fatalPrefixPlain = []byte("[FATA] ")
-var successPrefixPlain = []byte("[SUCC] ")
+var infoPrefixPlain = []byte("INFO ")
+var warnPrefixPlain = []byte("WARN ")
+var errorPrefixPlain = []byte("WARN ")
+var fatalPrefixPlain = []byte("FATA ")
+var successPrefixPlain = []byte("SUCC ")
 
 type Prefix struct {
 	Plain   []byte
@@ -138,20 +138,10 @@ func (l *Logger) Log(prefix Prefix, text string) {
 		if l.color {
 			l.buf.Append(ColorGreen)
 		}
-		year, month, day := now.Date()
-		l.buf.Append([]byte(fmt.Sprint(year)))
-		l.buf.AppendByte('/')
-		l.buf.Append([]byte(fmt.Sprint(int(month))))
-		l.buf.AppendByte('/')
-		l.buf.Append([]byte(fmt.Sprint(day)))
-		l.buf.AppendByte(' ')
 
-		hours, minutes, seconds := now.Clock()
-		l.buf.Append([]byte(fmt.Sprint(hours)))
-		l.buf.AppendByte(':')
-		l.buf.Append([]byte(fmt.Sprint(minutes)))
-		l.buf.AppendByte(':')
-		l.buf.Append([]byte(fmt.Sprint(seconds)))
+		formattedTimeBytes := getCurrentTime(now)
+
+		l.buf.Append(formattedTimeBytes)
 
 		if l.color {
 			l.buf.Append(ColorReset)
@@ -171,7 +161,7 @@ func (l *Logger) Log(prefix Prefix, text string) {
 	l.out.Write(l.buf)
 }
 
-func New(out io.Writer) *Logger {
+func NewLogger(out io.Writer) *Logger {
 	return &Logger{
 		out:       out,
 		timestamp: true,
