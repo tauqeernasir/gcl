@@ -80,19 +80,20 @@ func (l *Logger) Log(prefix Prefix, text string) {
 		l.buf.Append(ColorPurple)
 		year, month, day := now.Date()
 		l.buf.Append([]byte(fmt.Sprint(year)))
-		l.buf.Append([]byte("/"))
+		l.buf.AppendByte('/')
 		l.buf.Append([]byte(fmt.Sprint(int(month))))
-		l.buf.Append([]byte("/"))
+		l.buf.AppendByte('/')
 		l.buf.Append([]byte(fmt.Sprint(day)))
-		l.buf.Append([]byte(" "))
+		l.buf.AppendByte(' ')
 
 		hours, minutes, seconds := now.Clock()
 		l.buf.Append([]byte(fmt.Sprint(hours)))
-		l.buf.Append([]byte(":"))
+		l.buf.AppendByte(':')
 		l.buf.Append([]byte(fmt.Sprint(minutes)))
-		l.buf.Append([]byte(":"))
+		l.buf.AppendByte(':')
 		l.buf.Append([]byte(fmt.Sprint(seconds)))
-		l.buf.Append([]byte(" "))
+		l.buf.AppendByte(' ')
+
 		l.buf.Append(ColorReset)
 	}
 

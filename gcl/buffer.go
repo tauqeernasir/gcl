@@ -9,3 +9,7 @@ func (b *Buffer) Reset() {
 func (b *Buffer) Append(data []byte) {
 	*b = append(*b, data...)
 }
+
+func (b *Buffer) AppendByte(data byte) {
+	*b = append(*b, data)
+}
