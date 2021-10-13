@@ -3,6 +3,7 @@ package gcl
 import (
 	"fmt"
 	"io"
+	"os"
 	"sync"
 	"time"
 )
@@ -10,6 +11,7 @@ import (
 var infoPrefixPlain = []byte("[INFO] ")
 var warnPrefixPlain = []byte("[WARN] ")
 var errorPrefixPlain = []byte("[WARN] ")
+var fatalPrefixPlain = []byte("[FATA] ")
 
 type Prefix struct {
 	Plain   []byte
@@ -30,6 +32,11 @@ var (
 	ErrorPrefix = Prefix{
 		Plain:   errorPrefixPlain,
 		Colored: Red(errorPrefixPlain),
+	}
+
+	FatalPrefix = Prefix{
+		Plain:   fatalPrefixPlain,
+		Colored: Red(fatalPrefixPlain),
 	}
 )
 
@@ -63,6 +70,16 @@ func (l *Logger) Error(text string) {
 
 func (l *Logger) Errorf(text string, args ...interface{}) {
 	l.Log(ErrorPrefix, fmt.Sprintf(text, args...))
+}
+
+func (l *Logger) Fatal(text string) {
+	l.Log(FatalPrefix, text)
+	os.Exit(1)
+}
+
+func (l *Logger) Fatalf(text string, args ...interface{}) {
+	l.Log(FatalPrefix, fmt.Sprintf(text, args...))
+	os.Exit(1)
 }
 
 func (l *Logger) WithTimestamp() *Logger {
