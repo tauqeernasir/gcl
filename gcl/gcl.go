@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-var infoPrefixPlain = []byte("INFO \u2591 ")
-var warnPrefixPlain = []byte("WARN \u2591 ")
-var errorPrefixPlain = []byte("ERRO \u2591 ")
-var fatalPrefixPlain = []byte("FATA \u2591 ")
-var successPrefixPlain = []byte("SUCC \u2591 ")
+var infoPrefixPlain = []byte("INFO")
+var warnPrefixPlain = []byte("WARN")
+var errorPrefixPlain = []byte("ERRO")
+var fatalPrefixPlain = []byte("FATA")
+var successPrefixPlain = []byte("SUCC")
 
 type Prefix struct {
 	Plain   []byte
@@ -59,6 +59,14 @@ type Logger struct {
 }
 
 type Fields map[string]interface{}
+
+type jsonOutput struct {
+	Type     string                 `json:"type,omitempty"`
+	Message  string                 `json:"message,omitempty"`
+	Data     map[string]interface{} `json:"data,omitempty"`
+	Time     string                 `json:"time,omitempty"`
+	FileInfo string                 `json:"fileInfo,omitempty"`
+}
 
 func (f *Fields) Reset() {
 	*f = nil
@@ -149,61 +157,108 @@ func (l *Logger) WithoutFileInfo() *Logger {
 	return l
 }
 
-func (l *Logger) Log(prefix Prefix, text string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+func (l *Logger) prepareBuffers(text string) *jsonOutput {
+	var (
+		timeBuff     Buffer
+		fileInfoBuff Buffer
+		textBuff     Buffer
+		dataBuff     Buffer
+	)
+
+	textBuff.Append([]byte(text))
 
 	now := time.Now()
 
+	formattedTimeBytes := getCurrentTime(now)
+	timeBuff.Append(formattedTimeBytes)
+
+	file, line, fn := getFileInfo()
+	fileInfoBuff.Append([]byte(fmt.Sprintf("file<%v:%v>@%v", file, line, fn)))
+
+	if jsonBytes, err := json.Marshal(l.fields); err == nil && string(jsonBytes) != "null" {
+		dataBuff.Append(jsonBytes)
+		l.fields.Reset()
+	}
+
+	// Start formatting output
+
+	output := jsonOutput{
+		Message:  string(textBuff),
+		Time:     string(timeBuff),
+		FileInfo: string(fileInfoBuff),
+	}
+
+	if len(dataBuff) > 0 {
+		json.Unmarshal(dataBuff, &output.Data)
+	}
+
+	return &output
+}
+
+func (l *Logger) Log(prefix Prefix, text string) {
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	l.buf.Reset()
 
+	output := l.prepareBuffers(text)
+	isJson := len(output.Data) > 0
+	isColored := l.color && !isJson
+
+	if isColored {
+		output.Type = string(prefix.Colored)
+	} else {
+		output.Type = string(prefix.Plain)
+	}
+
+	if isJson {
+		// flush data in json format
+		if d, err := json.Marshal(output); err == nil {
+			l.buf.Append(d[:])
+			l.buf.AppendByte('\n')
+			l.out.Write(l.buf)
+			return
+		}
+	}
+
+	// create timestamp buff
 	if l.timestamp {
-		if l.color {
+		if isColored {
 			l.buf.Append(ColorGray)
 		}
 
-		formattedTimeBytes := getCurrentTime(now)
+		l.buf.Append([]byte(output.Time))
 
-		l.buf.Append(formattedTimeBytes)
-
-		if l.color {
+		if isColored {
 			l.buf.Append(ColorReset)
 		}
 
 		l.buf.AppendByte(' ')
 	}
 
-	if l.color {
-		l.buf.Append(prefix.Colored)
-	} else {
-		l.buf.Append(prefix.Plain)
-	}
+	// create prefix buff
+	l.buf.Append([]byte(output.Type))
+	l.buf.AppendByte(' ')
 
+	// create file info buff
 	if l.showFileInfo {
 		l.buf.AppendByte('[')
-		if l.color {
+		if isColored {
 			l.buf.Append(ColorReset)
 			l.buf.Append(StyleUnderline)
 		}
 
-		file, line, fn := getFileInfo()
-		l.buf.Append([]byte(fmt.Sprintf("file<%v:%v>@%v", file, line, fn)))
+		l.buf.Append([]byte(output.FileInfo))
 
-		if l.color {
+		if isColored {
 			l.buf.Append(ColorReset)
 		}
 		l.buf.AppendByte(']')
 		l.buf.AppendByte(' ')
 	}
 
-	// print data received
-	l.buf.Append([]byte(text))
-
-	if jsonBytes, err := json.Marshal(l.fields); err == nil && string(jsonBytes) != "null" {
-		l.buf.AppendByte(' ')
-		l.buf.Append([]byte(jsonBytes))
-		l.fields.Reset()
-	}
+	l.buf.Append([]byte(output.Message))
 
 	if len(text) == 0 || text[len(text)-1] != '\n' {
 		l.buf.Append([]byte("\n"))
