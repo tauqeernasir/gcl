@@ -167,10 +167,7 @@ func (l *Logger) prepareBuffers(text string) *jsonOutput {
 
 	textBuff.Append([]byte(text))
 
-	now := time.Now()
-
-	formattedTimeBytes := getCurrentTime(now)
-	timeBuff.Append(formattedTimeBytes)
+	timeBuff.Append([]byte(time.Now().Format(time.RFC3339)))
 
 	file, line, fn := getFileInfo()
 	fileInfoBuff.Append([]byte(fmt.Sprintf("file<%v:%v>@%v", file, line, fn)))
@@ -228,7 +225,8 @@ func (l *Logger) Log(prefix Prefix, text string) {
 			l.buf.Append(ColorGray)
 		}
 
-		l.buf.Append([]byte(output.Time))
+		t, _ := time.Parse(time.RFC3339, output.Time)
+		l.buf.Append(getCurrentTime(t))
 
 		if isColored {
 			l.buf.Append(ColorReset)
