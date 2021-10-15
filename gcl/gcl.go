@@ -54,6 +54,7 @@ type Logger struct {
 	buf          Buffer
 	out          io.Writer
 	showFileInfo bool
+	prettyJson   bool
 	// fields to display with next out call
 	fields Fields
 }
@@ -157,6 +158,20 @@ func (l *Logger) WithoutFileInfo() *Logger {
 	return l
 }
 
+func (l *Logger) WithPrettyJson() *Logger {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.prettyJson = true
+	return l
+}
+
+func (l *Logger) WithoutPrettyJson() *Logger {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.prettyJson = false
+	return l
+}
+
 func (l *Logger) prepareBuffers(text string) *jsonOutput {
 	var (
 		timeBuff     Buffer
@@ -202,6 +217,7 @@ func (l *Logger) Log(prefix Prefix, text string) {
 	output := l.prepareBuffers(text)
 	isJson := len(output.Data) > 0
 	isColored := l.color && !isJson
+	prettyJson := l.prettyJson
 
 	if isColored {
 		output.Type = string(prefix.Colored)
@@ -211,12 +227,22 @@ func (l *Logger) Log(prefix Prefix, text string) {
 
 	if isJson {
 		// flush data in json format
-		if d, err := json.Marshal(output); err == nil {
+		var d []byte
+		var err error
+
+		if prettyJson {
+			d, err = json.MarshalIndent(output, "", "  ")
+		} else {
+			d, err = json.Marshal(output)
+		}
+
+		if err == nil {
 			l.buf.Append(d[:])
 			l.buf.AppendByte('\n')
 			l.out.Write(l.buf)
 			return
 		}
+
 	}
 
 	// create timestamp buff
@@ -268,8 +294,9 @@ func (l *Logger) Log(prefix Prefix, text string) {
 
 func NewLogger(out io.Writer) *Logger {
 	return &Logger{
-		out:       out,
-		timestamp: true,
-		color:     true,
+		out:        out,
+		timestamp:  true,
+		color:      true,
+		prettyJson: false,
 	}
 }

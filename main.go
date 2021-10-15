@@ -19,7 +19,7 @@ func main() {
 	l.Success("I am an error.")
 	l.Errorf("I am an error (%v=%v)", "key", "value")
 
-	lc := gcl.NewLogger(os.Stdout).WithColor()
+	lc := gcl.NewLogger(os.Stdout).WithColor().WithPrettyJson()
 	lc.Info("I am an information.")
 	lc.Infof("I am an information (%v=%v)", "key", "value")
 	lc.Warn("I am a warning")
